@@ -20,13 +20,13 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         try {
-            setupFirmate();
+            setupFirmata();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private void setupFirmate() throws IOException {
+    private void setupFirmata() throws IOException {
         // Find all available drivers from attached devices.
         UsbManager manager = (UsbManager) getSystemService(Context.USB_SERVICE);
         List<UsbSerialDriver> availableDrivers = UsbSerialProber.getDefaultProber().findAllDrivers(manager);
