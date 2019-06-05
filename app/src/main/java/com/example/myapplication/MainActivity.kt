@@ -1,5 +1,6 @@
 package com.example.myapplication
 
+import android.app.PendingIntent.getActivity
 import android.content.Context
 import android.hardware.usb.UsbManager
 import android.support.v7.app.AppCompatActivity
@@ -14,25 +15,50 @@ import java.io.IOException
 import android.bluetooth.BluetoothAdapter
 import android.support.v7.widget.LinearLayoutManager
 import kotlinx.android.synthetic.main.activity_main.*
+import android.bluetooth.BluetoothDevice
+import android.content.Intent
+import android.content.BroadcastReceiver
+import android.content.IntentFilter
+
 
 class MainActivity : AppCompatActivity() {
+
+    private val adapter = DevicesAdapter {
+        connect(it)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        addDevices()
+
+        if (savedInstanceState==null) {
+            val filter = IntentFilter(BluetoothDevice.ACTION_FOUND)
+            registerReceiver(bReciever, filter)
+        }
+
+        recyclerView.layoutManager = LinearLayoutManager(this)
+        recyclerView.adapter = adapter
+    }
+
+    private val bReciever = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            val action = intent.action
+            if (BluetoothDevice.ACTION_FOUND == action) {
+                // BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                //DeviceItem newDevice = new DeviceItem(device.getName(), device.getAddress(), "false")
+                addDevices()
+            }
+        }
+    }
+
+    private fun addDevices() {
         val mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
         val pairedDevices = mBluetoothAdapter.bondedDevices
-
         val s = ArrayList<String>()
         for (bt in pairedDevices)
             s.add(bt.name)
-
-        val adapter = DevicesAdapter {
-            connect(it)
-        }
-        recyclerView.layoutManager = LinearLayoutManager(this)
-        recyclerView.adapter = adapter
         adapter.submitListCopy(s)
     }
 
