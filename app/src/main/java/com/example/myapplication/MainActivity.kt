@@ -1,6 +1,5 @@
 package com.example.myapplication
 
-import android.app.PendingIntent.getActivity
 import android.content.Context
 import android.hardware.usb.UsbManager
 import android.support.v7.app.AppCompatActivity
@@ -15,10 +14,11 @@ import java.io.IOException
 import android.bluetooth.BluetoothAdapter
 import android.support.v7.widget.LinearLayoutManager
 import kotlinx.android.synthetic.main.activity_main.*
-import android.bluetooth.BluetoothDevice
-import android.content.Intent
-import android.content.BroadcastReceiver
-import android.content.IntentFilter
+import android.bluetooth.le.ScanCallback
+import android.bluetooth.le.ScanResult
+import android.os.Build
+import android.support.annotation.RequiresApi
+import android.view.View
 
 
 class MainActivity : AppCompatActivity() {
@@ -27,28 +27,31 @@ class MainActivity : AppCompatActivity() {
         connect(it.name)
     }
 
+    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         if (savedInstanceState==null) {
-            val filter = IntentFilter(BluetoothDevice.ACTION_FOUND)
-            registerReceiver(bReciever, filter)
+            val bta = BluetoothAdapter.getDefaultAdapter()
+            val scanner = bta.bluetoothLeScanner
+            val callback = object: ScanCallback() {
+                override fun onBatchScanResults(results: MutableList<ScanResult>?) {
+                    results?.forEach {
+                        addDevice(DeviceItem(it.device.name, it.device.address))
+                    }
+                }
+            }
+            scanner?.startScan(callback)
+
+            bta.bondedDevices.forEach {
+                addDevice(DeviceItem(it.name, it.address))
+            }
+            button.visibility = View.GONE
         }
 
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = adapter
-    }
-
-    private val bReciever = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            val action = intent.action
-            if (BluetoothDevice.ACTION_FOUND == action) {
-                 val device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE) as BluetoothDevice
-                val newDevice =  DeviceItem(device.name, device.address)
-                addDevice(newDevice)
-            }
-        }
     }
 
     private val devices = ArrayList<DeviceItem>()
@@ -64,10 +67,21 @@ class MainActivity : AppCompatActivity() {
             onConnecting { Log.v(this::class.java.name, "Connecting...") }
 
             onConnected { board ->
-                Log.v(this::class.java.name,"Connected")
+
+                recyclerView.visibility = View.GONE
+                button.visibility = View.VISIBLE
 
                 val led = board.Led(11)
-                led.blink(500) // Blink every half second
+                var enabled = false
+                button.setOnClickListener {
+                    enabled = !enabled
+                    led.setValue(enabled)
+
+                    button.text = if (enabled) {
+                        getString(R.string.disable)
+                    } else getString(R.string.enable)
+                }
+                Log.v(this::class.java.name,"Connected")
             }
 
             onDisconnected { error ->
