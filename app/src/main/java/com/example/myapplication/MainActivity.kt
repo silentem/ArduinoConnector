@@ -19,6 +19,9 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        //connectBoard("tcp://192.168.4.1".toTransport(context), ...)
+        //connectBoard("usb:/<device_name>".toTransport(context), ...)
+
         connectBoardWithLifecycle("bt://HC-06".toTransport(this), lifecycle) {
             onConnecting { Log.v(this::class.java.name, "Connecting...") }
 
