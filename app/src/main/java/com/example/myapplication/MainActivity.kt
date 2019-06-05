@@ -28,22 +28,25 @@ class MainActivity : AppCompatActivity() {
         for (bt in pairedDevices)
             s.add(bt.name)
 
-        val adapter = DevicesAdapter()
+        val adapter = DevicesAdapter {
+            connect(it)
+        }
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = adapter
         adapter.submitListCopy(s)
+    }
 
+    private fun connect(bt: String) {
         //connectBoard("tcp://192.168.4.1".toTransport(context), ...)
         //connectBoard("usb:/<device_name>".toTransport(context), ...)
-
-        connectBoardWithLifecycle("bt://HC-06".toTransport(this), lifecycle) {
+        connectBoardWithLifecycle("bt://$bt".toTransport(this), lifecycle) {
             onConnecting { Log.v(this::class.java.name, "Connecting...") }
 
             onConnected { board ->
                 Log.v(this::class.java.name,"Connected")
 
-               val led = board.Led(13)
-               led.blink(500) // Blink every half second
+                val led = board.Led(11)
+                led.blink(500) // Blink every half second
             }
 
             onDisconnected { error ->
@@ -52,7 +55,6 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-
     }
 
     @Throws(IOException::class)
