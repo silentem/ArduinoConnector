@@ -25,8 +25,8 @@ class MainActivity : AppCompatActivity() {
             onConnected { board ->
                 Log.v(this::class.java.name,"Connected")
 
-//                val led = com.xujiaao.android.firmata.board.driver.Led()
-//                led.blink(500) // Blink every half second
+               val led = board.Led(13)
+               led.blink(500) // Blink every half second
             }
 
             onDisconnected { error ->
