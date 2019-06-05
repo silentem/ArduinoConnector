@@ -10,14 +10,28 @@ import com.hoho.android.usbserial.driver.UsbSerialProber
 import com.xujiaao.android.firmata.board.connectBoardWithLifecycle
 import com.xujiaao.android.firmata.board.driver.Led
 import com.xujiaao.android.firmata.transport.toTransport
-
 import java.io.IOException
+import android.bluetooth.BluetoothAdapter
+import android.support.v7.widget.LinearLayoutManager
+import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        val mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
+        val pairedDevices = mBluetoothAdapter.bondedDevices
+
+        val s = ArrayList<String>()
+        for (bt in pairedDevices)
+            s.add(bt.name)
+
+        val adapter = DevicesAdapter()
+        recyclerView.layoutManager = LinearLayoutManager(this)
+        recyclerView.adapter = adapter
+        adapter.submitListCopy(s)
 
         //connectBoard("tcp://192.168.4.1".toTransport(context), ...)
         //connectBoard("usb:/<device_name>".toTransport(context), ...)
