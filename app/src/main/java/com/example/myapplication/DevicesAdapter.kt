@@ -8,8 +8,8 @@ import android.view.ViewGroup
 import kotlinx.android.extensions.LayoutContainer
 import kotlinx.android.synthetic.main.cell_device.*
 
-class DevicesAdapter (private var onClick: ((String) -> Unit)? = null):
-        ListAdapter<String, DevicesAdapter.ViewHolder>(DIFF_CALLBACK) {
+class DevicesAdapter (private var onClick: ((DeviceItem) -> Unit)? = null):
+        ListAdapter<DeviceItem, DevicesAdapter.ViewHolder>(DIFF_CALLBACK) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder
             = ViewHolder(createLayout(parent, R.layout.cell_device))
@@ -22,16 +22,18 @@ class DevicesAdapter (private var onClick: ((String) -> Unit)? = null):
     }
 
     class ViewHolder(override val containerView: View) : RecyclerView.ViewHolder(containerView), LayoutContainer {
-        fun onBind(text: String) {
-            name.text = text
+        fun onBind(device: DeviceItem) {
+            name.text = device.name
         }
     }
 
     private companion object {
-        val DIFF_CALLBACK = object : DiffUtil.ItemCallback<String>() {
-            override fun areItemsTheSame(p0: String, p1: String) = p0 == p1
-            override fun areContentsTheSame(p0: String, p1: String) = p0 == p1
+        val DIFF_CALLBACK = object : DiffUtil.ItemCallback<DeviceItem>() {
+            override fun areItemsTheSame(p0: DeviceItem, p1: DeviceItem) = p0 == p1
+            override fun areContentsTheSame(p0: DeviceItem, p1: DeviceItem) = p0 == p1
         }
     }
 
 }
+
+data class DeviceItem( val name: String, val address: String)

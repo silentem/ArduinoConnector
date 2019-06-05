@@ -24,14 +24,12 @@ import android.content.IntentFilter
 class MainActivity : AppCompatActivity() {
 
     private val adapter = DevicesAdapter {
-        connect(it)
+        connect(it.name)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
-        addDevices()
 
         if (savedInstanceState==null) {
             val filter = IntentFilter(BluetoothDevice.ACTION_FOUND)
@@ -46,20 +44,17 @@ class MainActivity : AppCompatActivity() {
         override fun onReceive(context: Context, intent: Intent) {
             val action = intent.action
             if (BluetoothDevice.ACTION_FOUND == action) {
-                // BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                //DeviceItem newDevice = new DeviceItem(device.getName(), device.getAddress(), "false")
-                addDevices()
+                 val device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE) as BluetoothDevice
+                val newDevice =  DeviceItem(device.name, device.address)
+                addDevice(newDevice)
             }
         }
     }
 
-    private fun addDevices() {
-        val mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
-        val pairedDevices = mBluetoothAdapter.bondedDevices
-        val s = ArrayList<String>()
-        for (bt in pairedDevices)
-            s.add(bt.name)
-        adapter.submitListCopy(s)
+    private val devices = ArrayList<DeviceItem>()
+    private fun addDevice(device: DeviceItem) {
+        devices.add(device)
+        adapter.submitListCopy(devices.toHashSet().toList())
     }
 
     private fun connect(bt: String) {
