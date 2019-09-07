@@ -46,7 +46,7 @@ private const val HEARTBEATS_REQUEST_DELAY = 500L
 private const val HEARTBEATS_MAX_RETRIES = 2
 
 class DefaultBoardService(
-    private val looper: Looper,
+    private val looper: Looper?,
     private val transport: Transport
 ) : BoardService {
 
@@ -195,7 +195,7 @@ class DefaultBoardService(
     private inline fun <T> ensureLooperThread(name: String, action: () -> T): T {
         if (Looper.myLooper() !== looper) {
             throw IllegalStateException(
-                "Board.$name() can only be called in thread '${looper.thread.name}'"
+                "Board.$name() can only be called in thread '${looper?.thread?.name}'"
             )
         }
 

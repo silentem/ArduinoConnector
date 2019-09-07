@@ -73,7 +73,7 @@ object DefaultTransportProvider : TransportProvider {
                 applicationInfo?.metaData?.let {
                     for (key in it.keySet()) {
                         if (key != null && key.startsWith(PROVIDER_PREFIX)) {
-                            providerClasses[key] = it.getString(key)
+                            providerClasses[key] = it.getString(key) ?: ""
                         }
                     }
                 }

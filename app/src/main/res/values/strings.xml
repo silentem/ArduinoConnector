@@ -1,9 +1,56 @@
 <resources>
-    <string name="app_name">LED</string>
+    <string name="app_name">Android Firmata</string>
 
-    <string name="hello_world">Hello world!</string>
-    <string name="action_settings">Settings</string>
-    <string name="title_activity_led_control">ledControl</string>
-    <string name="enable">ENABLE</string>
-    <string name="disable">DISABLE</string>
+    <string name="group_led">Led</string>
+    <string name="group_servo">Servo</string>
+    <string name="group_motor">Motor</string>
+    <string name="group_joystick">Joystick</string>
+    <string name="group_others">Others</string>
+
+    <string name="title_led_simple">Led</string>
+    <string name="title_led_pwm">Led - PWM</string>
+    <string name="title_led_pca9685">Led - PCA9685</string>
+
+    <string name="title_motor_l298">Motor - L298</string>
+    <string name="title_motor_tb6612">Motor - TB6612</string>
+
+    <string name="title_servo_simple">Servo</string>
+    <string name="title_servo_pca9685">Servo - PCA9685</string>
+
+    <string name="title_joystick">Joystick</string>
+
+    <string name="title_others_visual_joystick">Visual Joystick</string>
+
+    <string name="menu_transport">Transport</string>
+    <string name="menu_reset">Reset</string>
+    <string name="menu_connect">Connect</string>
+    <string name="menu_disconnect">Disconnect</string>
+
+    <string name="dialog_transport_title">Transport</string>
+    <string name="dialog_connecting_message">Connecting…</string>
+    <string name="dialog_error_title">Error Occurs</string>
+    <string name="dialog_error_message_format">%s\n\nTry again?</string>
+
+    <string name="label_switch">On/Off</string>
+    <string name="label_blink">Blink</string>
+    <string name="label_brightness">Brightness</string>
+    <string name="label_pulse">Pulse</string>
+    <string name="label_fade_in">Fade In</string>
+    <string name="label_fade_out">Fade Out</string>
+    <string name="label_smooth">Smooth</string>
+    <string name="label_min">Min</string>
+    <string name="label_max">Max</string>
+    <string name="label_center">Center</string>
+    <string name="label_sweep">Sweep</string>
+    <string name="label_animate">Enable Animation</string>
+    <string name="label_angle">Angle</string>
+    <string name="label_speed">Speed</string>
+    <string name="label_forward">Forward</string>
+    <string name="label_backward">Backward</string>
+    <string name="label_stop">Stop</string>
+    <string name="label_scale_l">L Scale</string>
+    <string name="label_scale_r">R Scale</string>
+
+    <string name="message_bluetooth_enable">Bluetooth Enabled</string>
+
 </resources>
