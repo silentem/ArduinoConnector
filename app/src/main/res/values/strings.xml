@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Android Firmata</string>
+    <string name="app_name">Arduino Connector</string>
 
     <string name="group_led">Led</string>
     <string name="group_servo">Servo</string>
