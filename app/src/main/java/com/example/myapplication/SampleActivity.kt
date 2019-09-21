@@ -12,6 +12,10 @@ import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
 import com.xujiaao.android.firmata.board.*
+import com.xujiaao.android.firmata.board.driver.Led
+import com.xujiaao.android.firmata.board.driver.pca9685.Led
+import com.xujiaao.android.firmata.board.driver.pca9685.Pca9685
+import kotlinx.android.synthetic.main.activity_main.*
 import org.jetbrains.anko.indeterminateProgressDialog
 
 private const val TAG = "SampleActivity"
@@ -57,11 +61,17 @@ class SampleActivity : AppCompatActivity() {
         const val TRANSPORT_URI = "transport_uri"
     }
 
+    lateinit var board: Board
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         title = "No device connected"
+
+        b_blink.setOnClickListener {
+            board.Led(11).blink(1000)
+        }
 
     }
 
@@ -135,6 +145,9 @@ class SampleActivity : AppCompatActivity() {
         title = "Connected to ${board.firmwareName}"
         Toast.makeText(this, "Board was successfully connected", Toast.LENGTH_SHORT).show()
         Log.d(TAG, "onBoardConnected(board: Board)")
+
+        this.board = board
+
     }
 
     fun onBoardDisconnected() {

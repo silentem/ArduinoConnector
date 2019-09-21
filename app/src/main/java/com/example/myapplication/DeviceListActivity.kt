@@ -3,7 +3,9 @@ package com.example.myapplication
 import android.app.Activity
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
+import android.content.Context
 import android.content.Intent
+import android.hardware.usb.UsbManager
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.text.Editable
@@ -67,21 +69,34 @@ class DeviceListActivity : AppCompatActivity() {
 
     private fun showBondDeviceList() {
 
-        val bondedDevices = bluetoothAdapter?.bondedDevices?.toMutableList() ?: mutableListOf<BluetoothDevice>()
+
+        val bondedDevices = bluetoothAdapter?.bondedDevices?.toMutableList()
+                ?: mutableListOf<BluetoothDevice>()
         if (bondedDevices.isEmpty()) {
             Toast.makeText(applicationContext, "Не найдено сопряженных Bluetooth устройств.", Toast.LENGTH_LONG).show()
             return
         }
 
-        val adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1,
-                bondedDevices
-                        .map { "${it.name}\n${it.address} " })
+        val transfers: MutableList<Transfer> = bondedDevices.map { Bluetooth("bt://", it, "${it.name}\n${it.address} ") }.toMutableList()
+
+        val manager = getSystemService(Context.USB_SERVICE) as UsbManager
+        val deviceList = manager.getDeviceList()
+
+        transfers.addAll(deviceList.map { USB("usb:", it.key, it.key) })
+
+        val adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, transfers.map { it.name })
         listView.adapter = adapter
         listView.onItemClickListener = AdapterView.OnItemClickListener { av, v, position, arg3 ->
-            Log.d(TAG, "Selected device with address ${bondedDevices[position].address}")
+            Log.d(TAG, "Selected device with address ${transfers[position].name}")
             setResult(Activity.RESULT_OK, Intent().apply {
-                putExtra(SampleActivity.DEVICE, bondedDevices[position])
-                putExtra(SampleActivity.TRANSPORT_URI, "bt://")
+                val transfer = transfers[position]
+                putExtra(SampleActivity.DEVICE_ADDRESS,
+                        if (transfer is Bluetooth)
+                            transfer.bluetoothDevice.address?.replace(':', '.')
+                        else if (transfer is USB)
+                            transfer.path
+                        else "")
+                putExtra(SampleActivity.TRANSPORT_URI, transfers[position].scheme)
             })
             finish()
         }
@@ -119,3 +134,11 @@ class DeviceListActivity : AppCompatActivity() {
         const val BLUETOOTH_REQUEST = 1
     }
 }
+
+
+sealed class Transfer(val scheme: String, val name: String)
+
+class Bluetooth(scheme: String, val bluetoothDevice: BluetoothDevice, name: String) : Transfer(scheme, name)
+class Wifi(scheme: String, val uri: String, name: String) : Transfer(scheme, name)
+class USB(scheme: String, val path: String, name: String) : Transfer(scheme, name)
+
