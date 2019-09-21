@@ -13,8 +13,6 @@ import android.text.TextWatcher
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_device_list.*
 
@@ -24,9 +22,22 @@ class DeviceListActivity : AppCompatActivity() {
 
     private var bluetoothAdapter: BluetoothAdapter? = null
 
+    lateinit var adapter: DeviceAdapter
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_device_list)
+
+        adapter = DeviceAdapter { name, url ->
+            Log.d(TAG, "Selected device with address $url")
+            setResult(Activity.RESULT_OK, Intent().apply {
+                putExtra(SampleActivity.DEVICE_URL, url)
+                putExtra(SampleActivity.DEVICE_NAME, name)
+            })
+            finish()
+        }
+
+        rv_devices.adapter = adapter
 
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
 
@@ -57,18 +68,28 @@ class DeviceListActivity : AppCompatActivity() {
         b_wifi_connect.setOnClickListener {
             Log.d(TAG, "Selected device with address ${et_wifi_address.text}")
             setResult(Activity.RESULT_OK, Intent().apply {
-                putExtra(SampleActivity.DEVICE_ADDRESS, et_wifi_address.text.toString())
-                putExtra(SampleActivity.TRANSPORT_URI, "tcp://")
+                putExtra(SampleActivity.DEVICE_URL, "tcp://" + et_wifi_address.text.toString())
+
+                putExtra(SampleActivity.DEVICE_NAME, et_wifi_address.text.toString())
             })
             finish()
         }
 
+        adapter.urls = mutableListOf()
         showBondDeviceList()
+        showUsbDeviceList()
+        adapter.notifyDataSetChanged()
 
     }
 
-    private fun showBondDeviceList() {
+    private fun showUsbDeviceList() {
+        val manager = getSystemService(Context.USB_SERVICE) as UsbManager
+        val deviceList = manager.deviceList
 
+        adapter.urls.addAll(deviceList.map { "USB DEVICE" to "usb:" + it.key })
+    }
+
+    private fun showBondDeviceList() {
 
         val bondedDevices = bluetoothAdapter?.bondedDevices?.toMutableList()
                 ?: mutableListOf<BluetoothDevice>()
@@ -77,29 +98,7 @@ class DeviceListActivity : AppCompatActivity() {
             return
         }
 
-        val transfers: MutableList<Transfer> = bondedDevices.map { Bluetooth("bt://", it, "${it.name}\n${it.address} ") }.toMutableList()
-
-        val manager = getSystemService(Context.USB_SERVICE) as UsbManager
-        val deviceList = manager.getDeviceList()
-
-        transfers.addAll(deviceList.map { USB("usb:", it.key, it.key) })
-
-        val adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, transfers.map { it.name })
-        listView.adapter = adapter
-        listView.onItemClickListener = AdapterView.OnItemClickListener { av, v, position, arg3 ->
-            Log.d(TAG, "Selected device with address ${transfers[position].name}")
-            setResult(Activity.RESULT_OK, Intent().apply {
-                val transfer = transfers[position]
-                putExtra(SampleActivity.DEVICE_ADDRESS,
-                        if (transfer is Bluetooth)
-                            transfer.bluetoothDevice.address?.replace(':', '.')
-                        else if (transfer is USB)
-                            transfer.path
-                        else "")
-                putExtra(SampleActivity.TRANSPORT_URI, transfers[position].scheme)
-            })
-            finish()
-        }
+        adapter.urls.addAll(bondedDevices.map { it.name to "bt://" + it.address.replace(':', '.') })
 
     }
 
@@ -111,20 +110,17 @@ class DeviceListActivity : AppCompatActivity() {
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        // Inflate the menu; this adds items to the action bar if it is present.
         menuInflater.inflate(R.menu.menu_device_list, menu)
         return true
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         val id = item.itemId
-
-
         return if (id == R.id.refresh) {
+            adapter.urls = mutableListOf()
             showBondDeviceList()
+            showUsbDeviceList()
+            adapter.notifyDataSetChanged()
             true
         } else super.onOptionsItemSelected(item)
 
@@ -134,11 +130,4 @@ class DeviceListActivity : AppCompatActivity() {
         const val BLUETOOTH_REQUEST = 1
     }
 }
-
-
-sealed class Transfer(val scheme: String, val name: String)
-
-class Bluetooth(scheme: String, val bluetoothDevice: BluetoothDevice, name: String) : Transfer(scheme, name)
-class Wifi(scheme: String, val uri: String, name: String) : Transfer(scheme, name)
-class USB(scheme: String, val path: String, name: String) : Transfer(scheme, name)
 

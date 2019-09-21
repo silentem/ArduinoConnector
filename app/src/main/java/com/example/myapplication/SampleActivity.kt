@@ -2,7 +2,6 @@ package com.example.myapplication
 
 import android.app.Activity
 import android.app.Dialog
-import android.bluetooth.BluetoothDevice
 import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
@@ -23,9 +22,8 @@ class SampleActivity : AppCompatActivity(), CoroutineScope by CoroutineScope(Dis
 
     companion object {
         const val DEVICE_URI_RESULT = 1
-        const val DEVICE = "device"
-        const val DEVICE_ADDRESS = "device_address"
-        const val TRANSPORT_URI = "transport_uri"
+        const val DEVICE_URL = "device_url"
+        const val DEVICE_NAME = "device_name"
     }
 
     var board: Board? = null
@@ -103,24 +101,17 @@ class SampleActivity : AppCompatActivity(), CoroutineScope by CoroutineScope(Dis
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (resultCode == Activity.RESULT_OK && requestCode == DEVICE_URI_RESULT) {
-            val device = data?.getParcelableExtra<BluetoothDevice>(DEVICE)
-            Log.d(TAG, "Device $device")
-            val deviceAddress = data?.getStringExtra(DEVICE_ADDRESS)
-            val transportUri = data?.getStringExtra(TRANSPORT_URI) ?: return
-            if (device == null) {
-                mBoardConnection.connect(transportUri + deviceAddress)
-                Log.d(TAG, "Received address ${transportUri + deviceAddress}")
+            val deviceUrl = data?.getStringExtra(DEVICE_URL) ?: return
+            val deviceName = data.getStringExtra(DEVICE_NAME)
+            Log.d(TAG, "Device $deviceUrl")
 
-            } else {
-                mBoardConnection.connect(transportUri + device.address?.replace(':', '.'))
-                Log.d(TAG, "Received address ${transportUri + device.address}")
-            }
+            title = deviceName
+            mBoardConnection.connect(deviceUrl)
             invalidateOptionsMenu()
         }
     }
 
     fun onBoardConnected(board: Board) {
-        title = "Connected to ${board.firmwareName}"
         Toast.makeText(this, "Board was successfully connected", Toast.LENGTH_SHORT).show()
         Log.d(TAG, "onBoardConnected(board: Board)")
 
