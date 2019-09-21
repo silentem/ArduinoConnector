@@ -36,6 +36,7 @@ dependencies {
     implementation dep.libConstraintLayout
     implementation dep.libVirtualJoystick
     implementation dep.moduleAndroidFirmata
+    implementation 'com.android.support:recyclerview-v7:28.0.0'
 
     implementation 'com.android.support.constraint:constraint-layout:1.1.3'
 }

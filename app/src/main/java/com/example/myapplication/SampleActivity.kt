@@ -3,7 +3,6 @@ package com.example.myapplication
 import android.app.Activity
 import android.app.Dialog
 import android.bluetooth.BluetoothDevice
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
@@ -12,45 +11,13 @@ import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
 import com.xujiaao.android.firmata.board.*
-import com.xujiaao.android.firmata.board.driver.Led
-import com.xujiaao.android.firmata.board.driver.pca9685.Led
-import com.xujiaao.android.firmata.board.driver.pca9685.Pca9685
+import com.xujiaao.android.firmata.board.driver.DefaultPin
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import org.jetbrains.anko.indeterminateProgressDialog
 
-private const val TAG = "SampleActivity"
-
-
-const val DEFAULT_TRANSPORT = "bt://HC-06"
-
-private const val SP_NAME = "sample"
-private const val SP_KEY_TRANSPORT = "transport"
-private const val SP_KEY_AUTO_CONNECT = "auto_connect"
-
-
-fun Context.getPreferredTransport(): String? =
-        getSharedPreferences(SP_NAME, Context.MODE_PRIVATE).getString(
-                SP_KEY_TRANSPORT,
-                DEFAULT_TRANSPORT
-        )
-
-
-fun Context.setPreferredTransport(transport: String) =
-        getSharedPreferences(SP_NAME, Context.MODE_PRIVATE).edit().run {
-            if (transport.isEmpty() || transport == DEFAULT_TRANSPORT) {
-                remove(SP_KEY_TRANSPORT)
-            } else {
-                putString(SP_KEY_TRANSPORT, transport)
-            }
-        }.apply()
-
-fun Context.isAutoConnectEnabled(): Boolean =
-        getSharedPreferences(SP_NAME, Context.MODE_PRIVATE).getBoolean(
-                SP_KEY_AUTO_CONNECT,
-                true
-        )
-
-class SampleActivity : AppCompatActivity() {
+class SampleActivity : AppCompatActivity(), CoroutineScope by CoroutineScope(Dispatchers.IO) {
 
     val TAG = this::class.java.name
 
@@ -61,7 +28,9 @@ class SampleActivity : AppCompatActivity() {
         const val TRANSPORT_URI = "transport_uri"
     }
 
-    lateinit var board: Board
+    var board: Board? = null
+
+    lateinit var adapter: PinAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -69,16 +38,25 @@ class SampleActivity : AppCompatActivity() {
 
         title = "No device connected"
 
-        b_blink.setOnClickListener {
-            board.Led(11).blink(1000)
-        }
+        adapter = PinAdapter()
+
+        rv_pins.adapter = adapter
 
     }
 
     override fun onDestroy() {
         super.onDestroy()
+        disconnect()
+    }
 
+    fun disconnect() {
+        adapter.pins.forEach {
+            it.analogWrite(0)
+        }
+        adapter.pins = mutableListOf()
+        board?.close()
         mBoardConnection.disconnect()
+
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -110,7 +88,7 @@ class SampleActivity : AppCompatActivity() {
             }
             R.id.connection -> {
                 if (mBoardConnection.isConnected()) {
-                    mBoardConnection.disconnect()
+                    disconnect()
                 } else {
                     startActivityForResult(Intent(this, DeviceListActivity::class.java), DEVICE_URI_RESULT)
                 }
@@ -148,6 +126,18 @@ class SampleActivity : AppCompatActivity() {
 
         this.board = board
 
+        val pins = mutableListOf<DefaultPin>()
+
+        (0 until board.pinsCount).forEach {
+            if (board.getPinModes(it).isNotEmpty()) {
+                pins.add(DefaultPin(board, it))
+            }
+            val text = "${board.getPinSpec(it).name} | ${board.getPinModes(it)} | ${board.getAnalogChannel(it)}"
+            Log.d(TAG, text)
+        }
+
+        adapter.pins = pins
+
     }
 
     fun onBoardDisconnected() {
@@ -155,6 +145,7 @@ class SampleActivity : AppCompatActivity() {
         Toast.makeText(this, "Board was disconnected", Toast.LENGTH_SHORT).show()
         Log.d(TAG, "onBoardDisconnected()")
     }
+
 
     private val mBoardConnection = object : BoardConnection {
 
@@ -198,4 +189,6 @@ class SampleActivity : AppCompatActivity() {
             mProgressDialog = null
         }
     }
+
+
 }

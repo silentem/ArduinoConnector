@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
     tools:context=".SampleActivity">
-    <Button
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/rv_pins"
         android:layout_width="match_parent"
-        android:text="Blink"
-        android:id="@+id/b_blink"
-        android:layout_height="wrap_content"/>
-</RelativeLayout>
+        app:layoutManager="android.support.v7.widget.LinearLayoutManager"
+        android:layout_height="match_parent"/>
+</LinearLayout>
