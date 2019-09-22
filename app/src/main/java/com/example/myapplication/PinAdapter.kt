@@ -7,7 +7,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.SeekBar
 import com.xujiaao.android.firmata.board.driver.DefaultPin
-import com.xujiaao.android.firmata.protocol.PIN_MODE_OUTPUT
+import com.xujiaao.android.firmata.protocol.PIN_MODE_ANALOG
+import com.xujiaao.android.firmata.protocol.PIN_MODE_INPUT
 import com.xujiaao.android.firmata.protocol.PIN_MODE_PWM
 import kotlinx.android.synthetic.main.activity_pin_view_holder.view.*
 
@@ -36,20 +37,32 @@ class PinAdapter : RecyclerView.Adapter<PinAdapter.PinViewHolder>() {
 
             itemView.apply {
 
-                tv_name.text = "Pin: ${pin.spec.name}"
+                tv_name.text = "${if (pin.isAnalog()) "Analog" else ""} Pin: ${pin.spec.name}"
 
-                if (!pin.spec.pinModes.contains(PIN_MODE_PWM)) {
-                    sb_fill.visibility = View.GONE
-                    pin.pinMode(PIN_MODE_OUTPUT)
-                } else {
+                if (pin.isPWM()) {
+                    pin.stopAnalogReading()
+                    pin.stopDigitalReading()
                     sb_fill.visibility = View.VISIBLE
                     pin.pinMode(PIN_MODE_PWM)
+                } else {
+                    sb_fill.visibility = View.GONE
+                    pin.pinMode(PIN_MODE_INPUT)
+
+                    if (pin.isAnalog()) {
+                        pin.analogRead {
+                            updateVoltage(it)
+                        }
+                    } else {
+                        pin.digitalRead {
+                            updateVoltage(if (it) 255 else 0)
+                        }
+                    }
                 }
 
                 sb_fill.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
                     override fun onProgressChanged(p0: SeekBar?, p1: Int, p2: Boolean) {
                         pin.analogWrite(p1)
-                        tv_voltage.text = "Voltage: $p1"
+                        updateVoltage(p1)
                     }
 
                     override fun onStartTrackingTouch(p0: SeekBar?) {
@@ -72,7 +85,16 @@ class PinAdapter : RecyclerView.Adapter<PinAdapter.PinViewHolder>() {
                 }
             }
 
+
         }
+
+        @SuppressLint("SetTextI18n")
+        private fun updateVoltage(voltage: Int) {
+            itemView.tv_voltage.text = "Voltage: $voltage"
+        }
+
+        private fun DefaultPin.isAnalog() = spec.pinModes.contains(PIN_MODE_ANALOG)
+        private fun DefaultPin.isPWM() = spec.pinModes.contains(PIN_MODE_PWM)
 
     }
 
