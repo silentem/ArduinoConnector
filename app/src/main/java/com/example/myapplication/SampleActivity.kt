@@ -112,6 +112,7 @@ class SampleActivity : AppCompatActivity(), CoroutineScope by CoroutineScope(Dis
     }
 
     fun onBoardConnected(board: Board) {
+        board.io
         Toast.makeText(this, "Board was successfully connected", Toast.LENGTH_SHORT).show()
         Log.d(TAG, "onBoardConnected(board: Board)")
 
@@ -127,7 +128,17 @@ class SampleActivity : AppCompatActivity(), CoroutineScope by CoroutineScope(Dis
             Log.d(TAG, text)
         }
 
-        adapter.pins = pins
+//        adapter.pins = pins
+
+
+        val pinAddress = 10
+
+        val pin = DefaultPin(board, pinAddress)
+//        pin.pinMode(PIN_MODE_INPUT)
+        Log.d(TAG, "Trying to read from pin $pinAddress")
+        pin.analogRead {
+            Log.d(TAG, "Voltage for $pinAddress pin is $it")
+        }
 
     }
 
@@ -171,6 +182,10 @@ class SampleActivity : AppCompatActivity(), CoroutineScope by CoroutineScope(Dis
         override fun onBoardDisconnected(error: Throwable?) {
             dismissProgressDialog()
             invalidateOptionsMenu()
+
+            error?.localizedMessage?.let {
+                Log.e(TAG, it)
+            } ?: Log.e(TAG, "Error is null")
 
             this@SampleActivity.onBoardDisconnected()
         }

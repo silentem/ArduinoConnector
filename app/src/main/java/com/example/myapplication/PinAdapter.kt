@@ -49,8 +49,8 @@ class PinAdapter : RecyclerView.Adapter<PinAdapter.PinViewHolder>() {
                     pin.pinMode(PIN_MODE_INPUT)
 
                     if (pin.isAnalog()) {
-                        pin.analogRead {
-                            updateVoltage(it)
+                        pin.digitalRead {
+                            updateVoltage(if (it) 255 else 0)
                         }
                     } else {
                         pin.digitalRead {

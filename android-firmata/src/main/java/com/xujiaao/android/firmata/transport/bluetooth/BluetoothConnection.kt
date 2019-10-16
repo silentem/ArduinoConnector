@@ -84,7 +84,7 @@ abstract class BluetoothClientConnection : BluetoothConnection() {
             throw IOException("Transport connection is closed")
         }
 
-        val socket = device.createRfcommSocketToServiceRecord(UUID_SPP)
+        val socket = device.createInsecureRfcommSocketToServiceRecord(UUID_SPP)
                 ?: throw IOException("Failed to create Rfcomm socket")
 
         if (!isClosed()) {
