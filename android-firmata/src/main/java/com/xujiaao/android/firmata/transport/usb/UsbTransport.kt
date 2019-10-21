@@ -24,7 +24,7 @@ import java.util.concurrent.locks.Condition
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
-const val USB_BAUD_RATE_DEFAULT = 57600
+const val USB_BAUD_RATE_DEFAULT = 9600
 
 private const val USB_TRANSFER_TIMEOUT = 500 // 0 for infinite mode
 private const val USB_TRANSFER_START_DELAY = 1500L // delay after connecting

@@ -99,6 +99,7 @@ class SampleActivity : AppCompatActivity(), CoroutineScope by CoroutineScope(Dis
         }
     }
 
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (resultCode == Activity.RESULT_OK && requestCode == DEVICE_URI_RESULT) {
             val deviceUrl = data?.getStringExtra(DEVICE_URL) ?: return
@@ -116,29 +117,25 @@ class SampleActivity : AppCompatActivity(), CoroutineScope by CoroutineScope(Dis
         Toast.makeText(this, "Board was successfully connected", Toast.LENGTH_SHORT).show()
         Log.d(TAG, "onBoardConnected(board: Board)")
 
+
         this.board = board
+
 
         val pins = mutableListOf<DefaultPin>()
 
         (0 until board.pinsCount).forEach {
             if (board.getPinModes(it).isNotEmpty()) {
-                pins.add(DefaultPin(board, it))
+                if (board.getAnalogChannel(it) != -1) {
+                    pins.add(DefaultPin(board, "A${board.getAnalogChannel(it)}"))
+                } else {
+                    pins.add(DefaultPin(board, it))
+                }
             }
             val text = "${board.getPinSpec(it).name} | ${board.getPinModes(it)} | ${board.getAnalogChannel(it)}"
             Log.d(TAG, text)
         }
 
-//        adapter.pins = pins
-
-
-        val pinAddress = 10
-
-        val pin = DefaultPin(board, pinAddress)
-//        pin.pinMode(PIN_MODE_INPUT)
-        Log.d(TAG, "Trying to read from pin $pinAddress")
-        pin.analogRead {
-            Log.d(TAG, "Voltage for $pinAddress pin is $it")
-        }
+        adapter.pins = pins
 
     }
 
